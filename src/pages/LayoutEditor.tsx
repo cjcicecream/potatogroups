@@ -42,6 +42,16 @@ const LayoutEditor = () => {
     }
 
     setClassData(classes[code]);
+
+    // Poll for changes in student count
+    const interval = setInterval(() => {
+      const updatedClasses = JSON.parse(localStorage.getItem("classes") || "{}");
+      if (updatedClasses[code]) {
+        setClassData(updatedClasses[code]);
+      }
+    }, 1000);
+
+    return () => clearInterval(interval);
   }, [code, navigate, toast]);
 
   useEffect(() => {
@@ -59,6 +69,57 @@ const LayoutEditor = () => {
       canvas.dispose();
     };
   }, []);
+
+  // Automatically arrange desks when student count changes
+  useEffect(() => {
+    if (!fabricCanvas || !classData) return;
+
+    const studentCount = classData.students?.length || 0;
+    
+    if (studentCount === 0) return;
+
+    // Clear and regenerate desks
+    fabricCanvas.clear();
+    fabricCanvas.backgroundColor = "#f8f9fa";
+    
+    // Generate desks for all students
+    for (let i = 0; i < studentCount; i++) {
+      const deskNumber = i + 1;
+      
+      const desk = new Rect({
+        left: 0,
+        top: 0,
+        fill: "#e0e7ff",
+        width: 60,
+        height: 60,
+        stroke: "#6366f1",
+        strokeWidth: 2,
+        rx: 4,
+        ry: 4,
+      });
+
+      const label = new Text(`${deskNumber}`, {
+        fontSize: 16,
+        fontWeight: "bold",
+        fill: "#1e293b",
+      });
+
+      label.set({
+        left: 30 - (label.width || 0) / 2,
+        top: 30 - (label.height || 0) / 2,
+      });
+
+      const group = new Group([desk, label], {
+        left: 100 + (i % 5) * 80,
+        top: 100 + Math.floor(i / 5) * 80,
+      });
+
+      fabricCanvas.add(group);
+    }
+    
+    setDeskCount(studentCount);
+    fabricCanvas.renderAll();
+  }, [fabricCanvas, classData?.students?.length]);
 
   const addDesk = () => {
     if (!fabricCanvas) return;
