@@ -3,7 +3,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
-import { ArrowLeft, Square, Save, Users } from "lucide-react";
+import { ArrowLeft, Square, Save, Users, Trash2, Merge } from "lucide-react";
 import { Canvas as FabricCanvas, Rect, Text, Group } from "fabric";
 import {
   Dialog,
@@ -75,12 +75,27 @@ const LayoutEditor = () => {
       backgroundColor: "#f8f9fa",
     });
 
+    // Add keyboard delete support
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.key === 'Delete' || e.key === 'Backspace') && canvas.getActiveObject()) {
+        const activeObject = canvas.getActiveObject();
+        canvas.remove(activeObject);
+        canvas.renderAll();
+        toast({
+          title: "Table deleted",
+          description: "The selected table has been removed",
+        });
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
     setFabricCanvas(canvas);
 
     return () => {
+      window.removeEventListener('keydown', handleKeyDown);
       canvas.dispose();
     };
-  }, []);
+  }, [toast]);
 
   // Automatically arrange desks when student count changes
   useEffect(() => {
@@ -120,10 +135,10 @@ const LayoutEditor = () => {
   const createTableWithSeats = (tableNumber: number, left: number, top: number, seatsCount: number = 4) => {
     if (!fabricCanvas) return;
 
-    const tableWidth = 80;
-    const tableHeight = 120;
-    const seatSize = 12;
-    const seatOffset = 8;
+    const tableWidth = 100;
+    const tableHeight = 140;
+    const seatSize = 14;
+    const seatOffset = 10;
     
     const elements = [];
     
@@ -225,18 +240,31 @@ const LayoutEditor = () => {
       elements.push(seat);
     }
 
-    // Table number label
-    const label = new Text(`${tableNumber}`, {
-      fontSize: 20,
+    // Table number label (larger)
+    const label = new Text(`#${tableNumber}`, {
+      fontSize: 22,
       fontWeight: "bold",
       fill: "#ffffff",
     });
 
     label.set({
       left: tableWidth / 2 - (label.width || 0) / 2,
-      top: (tableHeight * 0.7) / 2 - (label.height || 0) / 2,
+      top: (tableHeight * 0.7) / 2 - (label.height || 0) / 2 - 10,
     });
     elements.push(label);
+
+    // Seat count label (smaller, below table number)
+    const seatLabel = new Text(`${seatsCount} seats`, {
+      fontSize: 14,
+      fontWeight: "normal",
+      fill: "#ffffff",
+    });
+
+    seatLabel.set({
+      left: tableWidth / 2 - (seatLabel.width || 0) / 2,
+      top: (tableHeight * 0.7) / 2 - (seatLabel.height || 0) / 2 + 15,
+    });
+    elements.push(seatLabel);
 
     const group = new Group(elements, {
       left: left,
@@ -252,6 +280,8 @@ const LayoutEditor = () => {
     (group as any).tableNumber = tableNumber;
 
     fabricCanvas.add(group);
+    fabricCanvas.setActiveObject(group);
+    fabricCanvas.renderAll();
   };
 
   const addDesks = (amount: number) => {
@@ -283,6 +313,66 @@ const LayoutEditor = () => {
     toast({
       title: `${amount} table${amount > 1 ? 's' : ''} added! 🪑`,
       description: `Added ${amount} resizable table${amount > 1 ? 's' : ''} with 4 seats each`,
+    });
+  };
+
+  const handleDeleteSelected = () => {
+    if (!fabricCanvas) return;
+    const activeObject = fabricCanvas.getActiveObject();
+    if (activeObject) {
+      fabricCanvas.remove(activeObject);
+      fabricCanvas.renderAll();
+      toast({
+        title: "Table deleted",
+        description: "The selected table has been removed",
+      });
+    } else {
+      toast({
+        title: "No table selected",
+        description: "Please select a table first",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleMergeTables = () => {
+    if (!fabricCanvas) return;
+    const activeSelection = fabricCanvas.getActiveObjects();
+    
+    if (activeSelection.length < 2) {
+      toast({
+        title: "Select multiple tables",
+        description: "Please select at least 2 tables to merge",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Calculate total seats
+    let totalSeats = 0;
+    let avgLeft = 0;
+    let avgTop = 0;
+    
+    activeSelection.forEach((obj: any) => {
+      totalSeats += obj.seatCount || 4;
+      avgLeft += obj.left || 0;
+      avgTop += obj.top || 0;
+    });
+
+    avgLeft = avgLeft / activeSelection.length;
+    avgTop = avgTop / activeSelection.length;
+
+    // Remove old tables
+    activeSelection.forEach(obj => fabricCanvas.remove(obj));
+
+    // Create new merged table
+    const newTableNumber = deskCount + 1;
+    createTableWithSeats(newTableNumber, avgLeft, avgTop, totalSeats);
+    setDeskCount(newTableNumber);
+
+    toast({
+      title: "Tables merged! 🪑",
+      description: `Created merged table with ${totalSeats} total seats`,
     });
   };
 
@@ -458,6 +548,14 @@ const LayoutEditor = () => {
               <Square className="mr-2 h-4 w-4" />
               Add One Table
             </Button>
+            <Button onClick={handleDeleteSelected} variant="outline">
+              <Trash2 className="mr-2 h-4 w-4" />
+              Delete Selected
+            </Button>
+            <Button onClick={handleMergeTables} variant="outline">
+              <Merge className="mr-2 h-4 w-4" />
+              Merge Selected
+            </Button>
             <Button onClick={handleClear} variant="outline">
               Clear All
             </Button>
@@ -472,7 +570,7 @@ const LayoutEditor = () => {
           </div>
 
           <p className="text-sm text-muted-foreground mt-4">
-            Drag tables to move them, use corner handles to resize, and rotation handle to turn. Yellow squares represent seats. Each table starts with 4 seats.
+            Tables display seat count and can be dragged, resized, and rotated. Select a table and press Delete/Backspace to remove it. Hold Shift to select multiple tables for merging.
             Total tables: {deskCount}
           </p>
         </Card>
