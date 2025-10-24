@@ -3,7 +3,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
-import { ArrowLeft, Square, Save } from "lucide-react";
+import { ArrowLeft, Square, Save, Users } from "lucide-react";
 import { Canvas as FabricCanvas, Rect, Text, Group } from "fabric";
 
 interface Class {
@@ -101,6 +101,67 @@ const LayoutEditor = () => {
     });
   };
 
+  const generateAllDesks = () => {
+    if (!fabricCanvas || !classData) return;
+
+    const studentCount = classData.students?.length || 0;
+    
+    if (studentCount === 0) {
+      toast({
+        title: "No students yet",
+        description: "Add students to your class first",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Clear existing desks
+    fabricCanvas.clear();
+    fabricCanvas.backgroundColor = "#f8f9fa";
+    
+    // Generate desks for all students
+    for (let i = 0; i < studentCount; i++) {
+      const deskNumber = i + 1;
+      
+      const desk = new Rect({
+        left: 0,
+        top: 0,
+        fill: "#e0e7ff",
+        width: 60,
+        height: 60,
+        stroke: "#6366f1",
+        strokeWidth: 2,
+        rx: 4,
+        ry: 4,
+      });
+
+      const label = new Text(`${deskNumber}`, {
+        left: 30,
+        top: 30,
+        fontSize: 16,
+        fontWeight: "bold",
+        fill: "#1e293b",
+        originX: "center",
+        originY: "center",
+      });
+
+      const group = new Group([desk, label], {
+        left: 100 + (i % 5) * 80,
+        top: 100 + Math.floor(i / 5) * 80,
+      });
+
+      fabricCanvas.add(group);
+    }
+    
+    setDeskCount(studentCount);
+    fabricCanvas.renderAll();
+
+    toast({
+      title: "Desks generated! 🥔",
+      description: `Created ${studentCount} desks for your students`,
+    });
+  };
+
   const handleSave = () => {
     if (!fabricCanvas || !code) return;
 
@@ -162,9 +223,13 @@ const LayoutEditor = () => {
 
         <Card className="p-6 mb-6">
           <div className="flex gap-4 mb-4">
-            <Button onClick={addDesk}>
+            <Button onClick={generateAllDesks} variant="default">
+              <Users className="mr-2 h-4 w-4" />
+              Generate Desks for All Students
+            </Button>
+            <Button onClick={addDesk} variant="outline">
               <Square className="mr-2 h-4 w-4" />
-              Add Desk
+              Add Single Desk
             </Button>
             <Button onClick={handleClear} variant="outline">
               Clear All
@@ -180,7 +245,7 @@ const LayoutEditor = () => {
           </div>
 
           <p className="text-sm text-muted-foreground mt-4">
-            Click "Add Desk" to add desks, then drag them to arrange your classroom layout.
+            Click "Generate Desks for All Students" to create numbered desks (1-{classData.students?.length || 0}), then drag them to arrange your classroom layout.
             Total desks: {deskCount}
           </p>
         </Card>
