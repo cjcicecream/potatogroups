@@ -33,6 +33,9 @@ const LayoutEditor = () => {
   const [deskCount, setDeskCount] = useState(0);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [seatCount, setSeatCount] = useState("");
+  const [isGenerateDialogOpen, setIsGenerateDialogOpen] = useState(false);
+  const [tableCount, setTableCount] = useState("");
+  const [seatsPerTable, setSeatsPerTable] = useState("");
 
   useEffect(() => {
     const currentTeacher = localStorage.getItem("currentTeacher");
@@ -132,13 +135,13 @@ const LayoutEditor = () => {
     fabricCanvas.renderAll();
   }, [fabricCanvas, classData?.students?.length]);
 
-  const createTableWithSeats = (tableNumber: number, left: number, top: number, seatsCount: number = 4) => {
+  const createTableWithSeats = (tableNumber: number, left: number, top: number, seatsCount: number = 4, studentNames: string[] = []) => {
     if (!fabricCanvas) return;
 
     const tableWidth = 100;
     const tableHeight = 140;
-    const seatSize = 14;
-    const seatOffset = 10;
+    const seatSize = 18;
+    const seatOffset = 12;
     
     const elements = [];
     
@@ -176,8 +179,10 @@ const LayoutEditor = () => {
     const leftSeats = Math.floor(seatsCount / 4);
     const rightSeats = Math.floor(seatsCount / 4);
 
+    let seatIndex = 0;
+
     // Top seats
-    for (let i = 0; i < topSeats && elements.length - 2 < seatsCount + 2; i++) {
+    for (let i = 0; i < topSeats && seatIndex < seatsCount; i++) {
       const seat = new Rect({
         left: (tableWidth / (topSeats + 1)) * (i + 1) - seatSize / 2,
         top: -seatOffset - seatSize,
@@ -186,14 +191,29 @@ const LayoutEditor = () => {
         height: seatSize,
         stroke: "#f59e0b",
         strokeWidth: 1,
-        rx: 2,
-        ry: 2,
+        rx: 3,
+        ry: 3,
       });
       elements.push(seat);
+
+      // Add student name if available
+      if (studentNames[seatIndex]) {
+        const nameLabel = new Text(studentNames[seatIndex], {
+          fontSize: 8,
+          fontWeight: "bold",
+          fill: "#1e293b",
+        });
+        nameLabel.set({
+          left: (tableWidth / (topSeats + 1)) * (i + 1) - (nameLabel.width || 0) / 2,
+          top: -seatOffset - seatSize - 12,
+        });
+        elements.push(nameLabel);
+      }
+      seatIndex++;
     }
 
     // Bottom seats
-    for (let i = 0; i < bottomSeats && elements.length - 2 < seatsCount + 2; i++) {
+    for (let i = 0; i < bottomSeats && seatIndex < seatsCount; i++) {
       const seat = new Rect({
         left: (tableWidth / (bottomSeats + 1)) * (i + 1) - seatSize / 2,
         top: tableHeight + seatOffset,
@@ -202,14 +222,29 @@ const LayoutEditor = () => {
         height: seatSize,
         stroke: "#f59e0b",
         strokeWidth: 1,
-        rx: 2,
-        ry: 2,
+        rx: 3,
+        ry: 3,
       });
       elements.push(seat);
+
+      // Add student name if available
+      if (studentNames[seatIndex]) {
+        const nameLabel = new Text(studentNames[seatIndex], {
+          fontSize: 8,
+          fontWeight: "bold",
+          fill: "#1e293b",
+        });
+        nameLabel.set({
+          left: (tableWidth / (bottomSeats + 1)) * (i + 1) - (nameLabel.width || 0) / 2,
+          top: tableHeight + seatOffset + seatSize + 2,
+        });
+        elements.push(nameLabel);
+      }
+      seatIndex++;
     }
 
     // Left seats
-    for (let i = 0; i < leftSeats && elements.length - 2 < seatsCount + 2; i++) {
+    for (let i = 0; i < leftSeats && seatIndex < seatsCount; i++) {
       const seat = new Rect({
         left: -seatOffset - seatSize,
         top: (tableHeight / (leftSeats + 1)) * (i + 1) - seatSize / 2,
@@ -218,14 +253,29 @@ const LayoutEditor = () => {
         height: seatSize,
         stroke: "#f59e0b",
         strokeWidth: 1,
-        rx: 2,
-        ry: 2,
+        rx: 3,
+        ry: 3,
       });
       elements.push(seat);
+
+      // Add student name if available
+      if (studentNames[seatIndex]) {
+        const nameLabel = new Text(studentNames[seatIndex], {
+          fontSize: 8,
+          fontWeight: "bold",
+          fill: "#1e293b",
+        });
+        nameLabel.set({
+          left: -seatOffset - seatSize - (nameLabel.width || 0) - 2,
+          top: (tableHeight / (leftSeats + 1)) * (i + 1) - (nameLabel.height || 0) / 2,
+        });
+        elements.push(nameLabel);
+      }
+      seatIndex++;
     }
 
     // Right seats
-    for (let i = 0; i < rightSeats && elements.length - 2 < seatsCount + 2; i++) {
+    for (let i = 0; i < rightSeats && seatIndex < seatsCount; i++) {
       const seat = new Rect({
         left: tableWidth + seatOffset,
         top: (tableHeight / (rightSeats + 1)) * (i + 1) - seatSize / 2,
@@ -234,10 +284,25 @@ const LayoutEditor = () => {
         height: seatSize,
         stroke: "#f59e0b",
         strokeWidth: 1,
-        rx: 2,
-        ry: 2,
+        rx: 3,
+        ry: 3,
       });
       elements.push(seat);
+
+      // Add student name if available
+      if (studentNames[seatIndex]) {
+        const nameLabel = new Text(studentNames[seatIndex], {
+          fontSize: 8,
+          fontWeight: "bold",
+          fill: "#1e293b",
+        });
+        nameLabel.set({
+          left: tableWidth + seatOffset + seatSize + 2,
+          top: (tableHeight / (rightSeats + 1)) * (i + 1) - (nameLabel.height || 0) / 2,
+        });
+        elements.push(nameLabel);
+      }
+      seatIndex++;
     }
 
     // Table number label (larger)
@@ -417,7 +482,23 @@ const LayoutEditor = () => {
   };
 
   const generateAllDesks = () => {
+    setIsGenerateDialogOpen(true);
+  };
+
+  const handleGenerate = () => {
     if (!fabricCanvas || !classData) return;
+
+    const tables = parseInt(tableCount);
+    const seatsPerTbl = parseInt(seatsPerTable);
+    
+    if (isNaN(tables) || tables < 1 || isNaN(seatsPerTbl) || seatsPerTbl < 1) {
+      toast({
+        title: "Invalid input",
+        description: "Please enter valid numbers for tables and seats",
+        variant: "destructive",
+      });
+      return;
+    }
 
     const studentCount = classData.students?.length || 0;
     
@@ -430,52 +511,51 @@ const LayoutEditor = () => {
       return;
     }
 
-    // Clear existing desks
+    // Clear existing layout
     fabricCanvas.clear();
     fabricCanvas.backgroundColor = "#f8f9fa";
     
-    // Generate desks for all students
-    for (let i = 0; i < studentCount; i++) {
-      const deskNumber = i + 1;
+    // Get student names
+    const studentNames = classData.students.map((s: any) => s.name || "Student");
+    let studentIndex = 0;
+
+    // Generate tables with students
+    const tablesPerRow = 5;
+    const tableWidth = 120;
+    const tableHeight = 160;
+    const spacing = 80;
+    
+    for (let i = 0; i < tables; i++) {
+      const tableNumber = i + 1;
+      const col = i % tablesPerRow;
+      const row = Math.floor(i / tablesPerRow);
       
-      const desk = new Rect({
-        left: 0,
-        top: 0,
-        fill: "#e0e7ff",
-        width: 60,
-        height: 60,
-        stroke: "#6366f1",
-        strokeWidth: 2,
-        rx: 4,
-        ry: 4,
-      });
-
-      const label = new Text(`${deskNumber}`, {
-        fontSize: 16,
-        fontWeight: "bold",
-        fill: "#1e293b",
-      });
-
-      // Position label at center of desk
-      label.set({
-        left: 30 - (label.width || 0) / 2,
-        top: 30 - (label.height || 0) / 2,
-      });
-
-      const group = new Group([desk, label], {
-        left: 100 + (i % 5) * 80,
-        top: 100 + Math.floor(i / 5) * 80,
-      });
-
-      fabricCanvas.add(group);
+      // Get student names for this table
+      const tableStudents = [];
+      for (let j = 0; j < seatsPerTbl && studentIndex < studentCount; j++) {
+        tableStudents.push(studentNames[studentIndex]);
+        studentIndex++;
+      }
+      
+      createTableWithSeats(
+        tableNumber,
+        50 + col * (tableWidth + spacing),
+        50 + row * (tableHeight + spacing),
+        seatsPerTbl,
+        tableStudents
+      );
     }
     
-    setDeskCount(studentCount);
+    setDeskCount(tables);
     fabricCanvas.renderAll();
 
+    setIsGenerateDialogOpen(false);
+    setTableCount("");
+    setSeatsPerTable("");
+
     toast({
-      title: "Desks generated! 🥔",
-      description: `Created ${studentCount} desks for your students`,
+      title: "Layout generated! 🎉",
+      description: `Created ${tables} tables with student names on seats`,
     });
   };
 
@@ -542,7 +622,7 @@ const LayoutEditor = () => {
           <div className="flex gap-4 mb-4">
             <Button onClick={generateAllDesks} variant="default">
               <Users className="mr-2 h-4 w-4" />
-              Generate Tables for All Students
+              Generate Seats for All Students
             </Button>
             <Button onClick={() => setIsDialogOpen(true)} variant="outline">
               <Square className="mr-2 h-4 w-4" />
@@ -570,11 +650,57 @@ const LayoutEditor = () => {
           </div>
 
           <p className="text-sm text-muted-foreground mt-4">
-            Tables display seat count and can be dragged, resized, and rotated. Select a table and press Delete/Backspace to remove it. Hold Shift to select multiple tables for merging.
-            Total tables: {deskCount}
+            Generate tables with student names, or add custom tables. Drag to move, resize with corners, and rotate. Press Delete to remove selected table.
+            Total tables: {deskCount} | Students: {classData.students?.length || 0}
           </p>
         </Card>
       </div>
+
+      <Dialog open={isGenerateDialogOpen} onOpenChange={setIsGenerateDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Generate Seats for All Students</DialogTitle>
+            <DialogDescription>
+              Configure how many tables and seats per table you want for your {classData.students?.length || 0} students.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="grid gap-4 py-4">
+            <div className="grid gap-2">
+              <Label htmlFor="tableCount">Number of tables</Label>
+              <Input
+                id="tableCount"
+                type="number"
+                min="1"
+                placeholder="Enter number of tables"
+                value={tableCount}
+                onChange={(e) => setTableCount(e.target.value)}
+              />
+            </div>
+            <div className="grid gap-2">
+              <Label htmlFor="seatsPerTable">Seats per table</Label>
+              <Input
+                id="seatsPerTable"
+                type="number"
+                min="1"
+                placeholder="Enter seats per table (e.g., 4, 6)"
+                value={seatsPerTable}
+                onChange={(e) => setSeatsPerTable(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") {
+                    handleGenerate();
+                  }
+                }}
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsGenerateDialogOpen(false)}>
+              Cancel
+            </Button>
+            <Button onClick={handleGenerate}>Generate</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
         <DialogContent>
