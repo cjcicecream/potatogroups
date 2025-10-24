@@ -100,40 +100,50 @@ const LayoutEditor = () => {
     };
   }, [toast]);
 
-  // Automatically arrange desks when student count changes
+  // Draw grid on canvas
   useEffect(() => {
-    if (!fabricCanvas || !classData) return;
+    if (!fabricCanvas) return;
 
-    const studentCount = classData.students?.length || 0;
-    
-    if (studentCount === 0) return;
+    const drawGrid = () => {
+      const gridSize = 40; // One grid square = one seat
+      const width = fabricCanvas.width || 1400;
+      const height = fabricCanvas.height || 900;
 
-    // Clear and regenerate desks
-    fabricCanvas.clear();
-    fabricCanvas.backgroundColor = "#f8f9fa";
-    
-    // Generate tables for all students
-    const tablesPerRow = 6;
-    const tableWidth = 80;
-    const tableHeight = 120;
-    const spacing = 50;
-    
-    for (let i = 0; i < studentCount; i++) {
-      const tableNumber = i + 1;
-      const col = i % tablesPerRow;
-      const row = Math.floor(i / tablesPerRow);
-      
-      createTableWithSeats(
-        tableNumber,
-        50 + col * (tableWidth + spacing),
-        50 + row * (tableHeight + spacing),
-        4
-      );
-    }
-    
-    setDeskCount(studentCount);
-    fabricCanvas.renderAll();
-  }, [fabricCanvas, classData?.students?.length]);
+      // Draw vertical lines
+      for (let i = 0; i <= width; i += gridSize) {
+        const line = new Rect({
+          left: i,
+          top: 0,
+          width: 1,
+          height: height,
+          fill: '#e5e7eb',
+          selectable: false,
+          evented: false,
+        });
+        fabricCanvas.add(line);
+        fabricCanvas.sendObjectToBack(line);
+      }
+
+      // Draw horizontal lines
+      for (let i = 0; i <= height; i += gridSize) {
+        const line = new Rect({
+          left: 0,
+          top: i,
+          width: width,
+          height: 1,
+          fill: '#e5e7eb',
+          selectable: false,
+          evented: false,
+        });
+        fabricCanvas.add(line);
+        fabricCanvas.sendObjectToBack(line);
+      }
+
+      fabricCanvas.renderAll();
+    };
+
+    drawGrid();
+  }, [fabricCanvas]);
 
   const createTableWithSeats = (tableNumber: number, left: number, top: number, seatsCount: number = 4, studentNames: string[] = []) => {
     if (!fabricCanvas) return;
