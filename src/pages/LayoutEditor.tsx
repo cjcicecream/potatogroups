@@ -100,48 +100,50 @@ const LayoutEditor = () => {
     };
   }, [toast]);
 
-  // Draw grid on canvas
+  // Helper function to draw grid
+  const drawGrid = () => {
+    if (!fabricCanvas) return;
+    
+    const gridSize = 40; // One grid square = one seat
+    const width = fabricCanvas.width || 1400;
+    const height = fabricCanvas.height || 900;
+
+    // Draw vertical lines
+    for (let i = 0; i <= width; i += gridSize) {
+      const line = new Rect({
+        left: i,
+        top: 0,
+        width: 1,
+        height: height,
+        fill: '#e5e7eb',
+        selectable: false,
+        evented: false,
+      });
+      fabricCanvas.add(line);
+      fabricCanvas.sendObjectToBack(line);
+    }
+
+    // Draw horizontal lines
+    for (let i = 0; i <= height; i += gridSize) {
+      const line = new Rect({
+        left: 0,
+        top: i,
+        width: width,
+        height: 1,
+        fill: '#e5e7eb',
+        selectable: false,
+        evented: false,
+      });
+      fabricCanvas.add(line);
+      fabricCanvas.sendObjectToBack(line);
+    }
+
+    fabricCanvas.renderAll();
+  };
+
+  // Draw grid on canvas initial load
   useEffect(() => {
     if (!fabricCanvas) return;
-
-    const drawGrid = () => {
-      const gridSize = 40; // One grid square = one seat
-      const width = fabricCanvas.width || 1400;
-      const height = fabricCanvas.height || 900;
-
-      // Draw vertical lines
-      for (let i = 0; i <= width; i += gridSize) {
-        const line = new Rect({
-          left: i,
-          top: 0,
-          width: 1,
-          height: height,
-          fill: '#e5e7eb',
-          selectable: false,
-          evented: false,
-        });
-        fabricCanvas.add(line);
-        fabricCanvas.sendObjectToBack(line);
-      }
-
-      // Draw horizontal lines
-      for (let i = 0; i <= height; i += gridSize) {
-        const line = new Rect({
-          left: 0,
-          top: i,
-          width: width,
-          height: 1,
-          fill: '#e5e7eb',
-          selectable: false,
-          evented: false,
-        });
-        fabricCanvas.add(line);
-        fabricCanvas.sendObjectToBack(line);
-      }
-
-      fabricCanvas.renderAll();
-    };
-
     drawGrid();
   }, [fabricCanvas]);
 
@@ -525,6 +527,9 @@ const LayoutEditor = () => {
     fabricCanvas.clear();
     fabricCanvas.backgroundColor = "#f8f9fa";
     
+    // Redraw grid after clearing
+    drawGrid();
+    
     // Get student names
     const studentNames = classData.students.map((s: any) => s.name || "Student");
     let studentIndex = 0;
@@ -599,6 +604,7 @@ const LayoutEditor = () => {
     if (!fabricCanvas) return;
     fabricCanvas.clear();
     fabricCanvas.backgroundColor = "#f8f9fa";
+    drawGrid();
     fabricCanvas.renderAll();
     setDeskCount(0);
     toast({
