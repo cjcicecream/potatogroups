@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
 import { ArrowLeft, Square, Save } from "lucide-react";
-import { Canvas as FabricCanvas, Rect, Text } from "fabric";
+import { Canvas as FabricCanvas, Rect, Text, Group } from "fabric";
 
 interface Class {
   code: string;
@@ -66,8 +66,8 @@ const LayoutEditor = () => {
     const newDeskNumber = deskCount + 1;
     
     const desk = new Rect({
-      left: 100 + (deskCount % 5) * 80,
-      top: 100 + Math.floor(deskCount / 5) * 80,
+      left: 0,
+      top: 0,
       fill: "#e0e7ff",
       width: 60,
       height: 60,
@@ -78,18 +78,21 @@ const LayoutEditor = () => {
     });
 
     const label = new Text(`${newDeskNumber}`, {
-      left: 120 + (deskCount % 5) * 80,
-      top: 120 + Math.floor(deskCount / 5) * 80,
+      left: 30,
+      top: 30,
       fontSize: 16,
       fontWeight: "bold",
       fill: "#1e293b",
       originX: "center",
       originY: "center",
-      selectable: false,
     });
 
-    fabricCanvas.add(desk);
-    fabricCanvas.add(label);
+    const group = new Group([desk, label], {
+      left: 100 + (deskCount % 5) * 80,
+      top: 100 + Math.floor(deskCount / 5) * 80,
+    });
+
+    fabricCanvas.add(group);
     setDeskCount(newDeskNumber);
 
     toast({
