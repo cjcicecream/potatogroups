@@ -114,11 +114,17 @@ const TeacherDashboard = () => {
           {Object.entries(classes).map(([code, classData]) => (
             <Card
               key={code}
-              className="p-6 hover:shadow-xl transition-shadow"
+              className="p-6 hover:shadow-xl transition-shadow cursor-pointer"
+              onClick={() => navigate(`/teacher/class/${code}`)}
+              role="button"
+              tabIndex={0}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" || e.key === " ") {
+                  navigate(`/teacher/class/${code}`);
+                }
+              }}
             >
-              <div onClick={() => navigate(`/teacher/class/${code}`)} className="cursor-pointer">
-                <h3 className="text-xl font-semibold mb-4">{classData.name}</h3>
-              </div>
+              <h3 className="text-xl font-semibold mb-4">{classData.name}</h3>
               
               <div className="bg-gradient-to-r from-primary/10 to-secondary/10 rounded-lg p-4 mb-4">
                 <p className="text-xs text-muted-foreground mb-1">Class Code:</p>
