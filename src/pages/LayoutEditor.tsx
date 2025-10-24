@@ -94,36 +94,65 @@ const LayoutEditor = () => {
     fabricCanvas.clear();
     fabricCanvas.backgroundColor = "#f8f9fa";
     
-    // Generate desks for all students
+    // Generate tables for all students
+    const tablesPerRow = 6;
+    const tableWidth = 80;
+    const tableHeight = 120;
+    const spacing = 30;
+    
     for (let i = 0; i < studentCount; i++) {
-      const deskNumber = i + 1;
+      const tableNumber = i + 1;
       
-      const desk = new Rect({
+      // Table top
+      const tableTop = new Rect({
         left: 0,
         top: 0,
-        fill: "#e0e7ff",
-        width: 60,
-        height: 60,
-        stroke: "#6366f1",
+        fill: "#8b5cf6",
+        width: tableWidth,
+        height: tableHeight * 0.7,
+        stroke: "#6d28d9",
+        strokeWidth: 2,
+        rx: 6,
+        ry: 6,
+      });
+
+      // Table base
+      const tableBase = new Rect({
+        left: tableWidth * 0.25,
+        top: tableHeight * 0.7,
+        fill: "#7c3aed",
+        width: tableWidth * 0.5,
+        height: tableHeight * 0.3,
+        stroke: "#6d28d9",
         strokeWidth: 2,
         rx: 4,
         ry: 4,
       });
 
-      const label = new Text(`${deskNumber}`, {
-        fontSize: 16,
+      // Table number label
+      const label = new Text(`${tableNumber}`, {
+        fontSize: 20,
         fontWeight: "bold",
-        fill: "#1e293b",
+        fill: "#ffffff",
       });
 
       label.set({
-        left: 30 - (label.width || 0) / 2,
-        top: 30 - (label.height || 0) / 2,
+        left: tableWidth / 2 - (label.width || 0) / 2,
+        top: (tableHeight * 0.7) / 2 - (label.height || 0) / 2,
       });
 
-      const group = new Group([desk, label], {
-        left: 100 + (i % 5) * 80,
-        top: 100 + Math.floor(i / 5) * 80,
+      const col = i % tablesPerRow;
+      const row = Math.floor(i / tablesPerRow);
+      
+      const group = new Group([tableTop, tableBase, label], {
+        left: 50 + col * (tableWidth + spacing),
+        top: 50 + row * (tableHeight + spacing),
+        selectable: true,
+        hasControls: true,
+        hasBorders: true,
+        lockScalingX: true,
+        lockScalingY: true,
+        lockRotation: false,
       });
 
       fabricCanvas.add(group);
@@ -137,37 +166,65 @@ const LayoutEditor = () => {
     if (!fabricCanvas || amount < 1) return;
 
     const currentCount = deskCount;
+    const tablesPerRow = 6;
+    const tableWidth = 80;
+    const tableHeight = 120;
+    const spacing = 30;
     
     for (let i = 0; i < amount; i++) {
-      const newDeskNumber = currentCount + i + 1;
+      const newTableNumber = currentCount + i + 1;
       
-      const desk = new Rect({
+      // Table top (wider rectangle)
+      const tableTop = new Rect({
         left: 0,
         top: 0,
-        fill: "#e0e7ff",
-        width: 60,
-        height: 60,
-        stroke: "#6366f1",
+        fill: "#8b5cf6",
+        width: tableWidth,
+        height: tableHeight * 0.7,
+        stroke: "#6d28d9",
+        strokeWidth: 2,
+        rx: 6,
+        ry: 6,
+      });
+
+      // Table base (smaller rectangle)
+      const tableBase = new Rect({
+        left: tableWidth * 0.25,
+        top: tableHeight * 0.7,
+        fill: "#7c3aed",
+        width: tableWidth * 0.5,
+        height: tableHeight * 0.3,
+        stroke: "#6d28d9",
         strokeWidth: 2,
         rx: 4,
         ry: 4,
       });
 
-      const label = new Text(`${newDeskNumber}`, {
-        fontSize: 16,
+      // Table number label
+      const label = new Text(`${newTableNumber}`, {
+        fontSize: 20,
         fontWeight: "bold",
-        fill: "#1e293b",
+        fill: "#ffffff",
       });
 
       label.set({
-        left: 30 - (label.width || 0) / 2,
-        top: 30 - (label.height || 0) / 2,
+        left: tableWidth / 2 - (label.width || 0) / 2,
+        top: (tableHeight * 0.7) / 2 - (label.height || 0) / 2,
       });
 
-      const totalDesks = currentCount + i;
-      const group = new Group([desk, label], {
-        left: 100 + (totalDesks % 5) * 80,
-        top: 100 + Math.floor(totalDesks / 5) * 80,
+      const totalTables = currentCount + i;
+      const col = totalTables % tablesPerRow;
+      const row = Math.floor(totalTables / tablesPerRow);
+      
+      const group = new Group([tableTop, tableBase, label], {
+        left: 50 + col * (tableWidth + spacing),
+        top: 50 + row * (tableHeight + spacing),
+        selectable: true,
+        hasControls: true,
+        hasBorders: true,
+        lockScalingX: true,
+        lockScalingY: true,
+        lockRotation: false,
       });
 
       fabricCanvas.add(group);
@@ -177,8 +234,8 @@ const LayoutEditor = () => {
     fabricCanvas.renderAll();
 
     toast({
-      title: `${amount} desk${amount > 1 ? 's' : ''} added! 🥔`,
-      description: `Added ${amount} desk${amount > 1 ? 's' : ''} to the layout`,
+      title: `${amount} table${amount > 1 ? 's' : ''} added! 🪑`,
+      description: `Added ${amount} draggable table${amount > 1 ? 's' : ''} to the layout`,
     });
   };
 
@@ -295,7 +352,7 @@ const LayoutEditor = () => {
     setDeskCount(0);
     toast({
       title: "Layout cleared",
-      description: "All desks have been removed",
+      description: "All tables have been removed",
     });
   };
 
@@ -324,11 +381,11 @@ const LayoutEditor = () => {
           <div className="flex gap-4 mb-4">
             <Button onClick={generateAllDesks} variant="default">
               <Users className="mr-2 h-4 w-4" />
-              Generate Desks for All Students
+              Generate Tables for All Students
             </Button>
             <Button onClick={() => setIsDialogOpen(true)} variant="outline">
               <Square className="mr-2 h-4 w-4" />
-              Add Desks
+              Add Tables
             </Button>
             <Button onClick={handleClear} variant="outline">
               Clear All
@@ -344,8 +401,8 @@ const LayoutEditor = () => {
           </div>
 
           <p className="text-sm text-muted-foreground mt-4">
-            Click "Generate Desks for All Students" to create numbered desks (1-{classData.students?.length || 0}), then drag them to arrange your classroom layout.
-            Total desks: {deskCount}
+            Drag and drop tables to arrange your classroom layout. Click and drag to move, rotate handles to turn tables.
+            Total tables: {deskCount}
           </p>
         </Card>
       </div>
@@ -353,19 +410,19 @@ const LayoutEditor = () => {
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Add Desks</DialogTitle>
+            <DialogTitle>Add Tables</DialogTitle>
             <DialogDescription>
-              How many desks would you like to add to the layout?
+              How many tables would you like to add to the layout? You can add as many as you need.
             </DialogDescription>
           </DialogHeader>
           <div className="grid gap-4 py-4">
             <div className="grid gap-2">
-              <Label htmlFor="deskAmount">Number of desks</Label>
+              <Label htmlFor="deskAmount">Number of tables</Label>
               <Input
                 id="deskAmount"
                 type="number"
                 min="1"
-                placeholder="Enter number of desks"
+                placeholder="Enter number of tables (unlimited)"
                 value={deskAmount}
                 onChange={(e) => setDeskAmount(e.target.value)}
                 onKeyDown={(e) => {
@@ -380,7 +437,7 @@ const LayoutEditor = () => {
             <Button variant="outline" onClick={() => setIsDialogOpen(false)}>
               Cancel
             </Button>
-            <Button onClick={handleAddDesks}>Add Desks</Button>
+            <Button onClick={handleAddDesks}>Add Tables</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
