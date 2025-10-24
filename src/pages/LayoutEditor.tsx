@@ -136,13 +136,15 @@ const LayoutEditor = () => {
       });
 
       const label = new Text(`${deskNumber}`, {
-        left: 30,
-        top: 30,
         fontSize: 16,
         fontWeight: "bold",
         fill: "#1e293b",
-        originX: "center",
-        originY: "center",
+      });
+
+      // Position label at center of desk
+      label.set({
+        left: 30 - (label.width || 0) / 2,
+        top: 30 - (label.height || 0) / 2,
       });
 
       const group = new Group([desk, label], {
