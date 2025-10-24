@@ -64,6 +64,26 @@ const ClassView = () => {
     });
   };
 
+  const handleRemovePreference = (studentName: string, preferenceIndex: number) => {
+    if (!code || !classData) return;
+
+    const classes = JSON.parse(localStorage.getItem("classes") || "{}");
+    const studentIndex = classes[code].students.findIndex(
+      (s: Student) => s.name === studentName
+    );
+    
+    if (studentIndex !== -1) {
+      classes[code].students[studentIndex].preferences.splice(preferenceIndex, 1);
+      localStorage.setItem("classes", JSON.stringify(classes));
+      setClassData(classes[code]);
+
+      toast({
+        title: "Preference removed",
+        description: "Seating preference has been deleted",
+      });
+    }
+  };
+
   if (!classData) {
     return null;
   }
@@ -121,9 +141,19 @@ const ClassView = () => {
                       <p className="text-sm font-medium text-muted-foreground mb-2">
                         Seating Preferences:
                       </p>
-                      <ol className="list-decimal list-inside space-y-1">
+                      <ol className="list-decimal list-inside space-y-2">
                         {student.preferences.map((pref, i) => (
-                          <li key={i} className="text-sm">{pref}</li>
+                          <li key={i} className="text-sm flex items-center justify-between">
+                            <span>{pref}</span>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => handleRemovePreference(student.name, i)}
+                              className="h-6 w-6 p-0 ml-2"
+                            >
+                              <Trash2 className="h-3 w-3 text-destructive" />
+                            </Button>
+                          </li>
                         ))}
                       </ol>
                     </div>
