@@ -98,69 +98,161 @@ const LayoutEditor = () => {
     const tablesPerRow = 6;
     const tableWidth = 80;
     const tableHeight = 120;
-    const spacing = 30;
+    const spacing = 50;
     
     for (let i = 0; i < studentCount; i++) {
       const tableNumber = i + 1;
-      
-      // Table top
-      const tableTop = new Rect({
-        left: 0,
-        top: 0,
-        fill: "#8b5cf6",
-        width: tableWidth,
-        height: tableHeight * 0.7,
-        stroke: "#6d28d9",
-        strokeWidth: 2,
-        rx: 6,
-        ry: 6,
-      });
-
-      // Table base
-      const tableBase = new Rect({
-        left: tableWidth * 0.25,
-        top: tableHeight * 0.7,
-        fill: "#7c3aed",
-        width: tableWidth * 0.5,
-        height: tableHeight * 0.3,
-        stroke: "#6d28d9",
-        strokeWidth: 2,
-        rx: 4,
-        ry: 4,
-      });
-
-      // Table number label
-      const label = new Text(`${tableNumber}`, {
-        fontSize: 20,
-        fontWeight: "bold",
-        fill: "#ffffff",
-      });
-
-      label.set({
-        left: tableWidth / 2 - (label.width || 0) / 2,
-        top: (tableHeight * 0.7) / 2 - (label.height || 0) / 2,
-      });
-
       const col = i % tablesPerRow;
       const row = Math.floor(i / tablesPerRow);
       
-      const group = new Group([tableTop, tableBase, label], {
-        left: 50 + col * (tableWidth + spacing),
-        top: 50 + row * (tableHeight + spacing),
-        selectable: true,
-        hasControls: true,
-        hasBorders: true,
-        lockScalingX: true,
-        lockScalingY: true,
-        lockRotation: false,
-      });
-
-      fabricCanvas.add(group);
+      createTableWithSeats(
+        tableNumber,
+        50 + col * (tableWidth + spacing),
+        50 + row * (tableHeight + spacing),
+        4
+      );
     }
     
     setDeskCount(studentCount);
     fabricCanvas.renderAll();
   }, [fabricCanvas, classData?.students?.length]);
+
+  const createTableWithSeats = (tableNumber: number, left: number, top: number, seatsCount: number = 4) => {
+    if (!fabricCanvas) return;
+
+    const tableWidth = 80;
+    const tableHeight = 120;
+    const seatSize = 12;
+    const seatOffset = 8;
+    
+    const elements = [];
+    
+    // Table top (wider rectangle)
+    const tableTop = new Rect({
+      left: 0,
+      top: 0,
+      fill: "#8b5cf6",
+      width: tableWidth,
+      height: tableHeight * 0.7,
+      stroke: "#6d28d9",
+      strokeWidth: 2,
+      rx: 6,
+      ry: 6,
+    });
+    elements.push(tableTop);
+
+    // Table base (smaller rectangle)
+    const tableBase = new Rect({
+      left: tableWidth * 0.25,
+      top: tableHeight * 0.7,
+      fill: "#7c3aed",
+      width: tableWidth * 0.5,
+      height: tableHeight * 0.3,
+      stroke: "#6d28d9",
+      strokeWidth: 2,
+      rx: 4,
+      ry: 4,
+    });
+    elements.push(tableBase);
+
+    // Add seats around the table
+    const topSeats = Math.ceil(seatsCount / 4);
+    const bottomSeats = Math.ceil(seatsCount / 4);
+    const leftSeats = Math.floor(seatsCount / 4);
+    const rightSeats = Math.floor(seatsCount / 4);
+
+    // Top seats
+    for (let i = 0; i < topSeats && elements.length - 2 < seatsCount + 2; i++) {
+      const seat = new Rect({
+        left: (tableWidth / (topSeats + 1)) * (i + 1) - seatSize / 2,
+        top: -seatOffset - seatSize,
+        fill: "#fbbf24",
+        width: seatSize,
+        height: seatSize,
+        stroke: "#f59e0b",
+        strokeWidth: 1,
+        rx: 2,
+        ry: 2,
+      });
+      elements.push(seat);
+    }
+
+    // Bottom seats
+    for (let i = 0; i < bottomSeats && elements.length - 2 < seatsCount + 2; i++) {
+      const seat = new Rect({
+        left: (tableWidth / (bottomSeats + 1)) * (i + 1) - seatSize / 2,
+        top: tableHeight + seatOffset,
+        fill: "#fbbf24",
+        width: seatSize,
+        height: seatSize,
+        stroke: "#f59e0b",
+        strokeWidth: 1,
+        rx: 2,
+        ry: 2,
+      });
+      elements.push(seat);
+    }
+
+    // Left seats
+    for (let i = 0; i < leftSeats && elements.length - 2 < seatsCount + 2; i++) {
+      const seat = new Rect({
+        left: -seatOffset - seatSize,
+        top: (tableHeight / (leftSeats + 1)) * (i + 1) - seatSize / 2,
+        fill: "#fbbf24",
+        width: seatSize,
+        height: seatSize,
+        stroke: "#f59e0b",
+        strokeWidth: 1,
+        rx: 2,
+        ry: 2,
+      });
+      elements.push(seat);
+    }
+
+    // Right seats
+    for (let i = 0; i < rightSeats && elements.length - 2 < seatsCount + 2; i++) {
+      const seat = new Rect({
+        left: tableWidth + seatOffset,
+        top: (tableHeight / (rightSeats + 1)) * (i + 1) - seatSize / 2,
+        fill: "#fbbf24",
+        width: seatSize,
+        height: seatSize,
+        stroke: "#f59e0b",
+        strokeWidth: 1,
+        rx: 2,
+        ry: 2,
+      });
+      elements.push(seat);
+    }
+
+    // Table number label
+    const label = new Text(`${tableNumber}`, {
+      fontSize: 20,
+      fontWeight: "bold",
+      fill: "#ffffff",
+    });
+
+    label.set({
+      left: tableWidth / 2 - (label.width || 0) / 2,
+      top: (tableHeight * 0.7) / 2 - (label.height || 0) / 2,
+    });
+    elements.push(label);
+
+    const group = new Group(elements, {
+      left: left,
+      top: top,
+      selectable: true,
+      hasControls: true,
+      hasBorders: true,
+      lockRotation: false,
+    });
+
+    // Store seat count as custom property
+    (group as any).seatCount = seatsCount;
+    (group as any).tableNumber = tableNumber;
+
+    fabricCanvas.add(group);
+  };
 
   const addDesks = (amount: number) => {
     if (!fabricCanvas || amount < 1) return;
@@ -169,65 +261,20 @@ const LayoutEditor = () => {
     const tablesPerRow = 6;
     const tableWidth = 80;
     const tableHeight = 120;
-    const spacing = 30;
+    const spacing = 50;
     
     for (let i = 0; i < amount; i++) {
       const newTableNumber = currentCount + i + 1;
-      
-      // Table top (wider rectangle)
-      const tableTop = new Rect({
-        left: 0,
-        top: 0,
-        fill: "#8b5cf6",
-        width: tableWidth,
-        height: tableHeight * 0.7,
-        stroke: "#6d28d9",
-        strokeWidth: 2,
-        rx: 6,
-        ry: 6,
-      });
-
-      // Table base (smaller rectangle)
-      const tableBase = new Rect({
-        left: tableWidth * 0.25,
-        top: tableHeight * 0.7,
-        fill: "#7c3aed",
-        width: tableWidth * 0.5,
-        height: tableHeight * 0.3,
-        stroke: "#6d28d9",
-        strokeWidth: 2,
-        rx: 4,
-        ry: 4,
-      });
-
-      // Table number label
-      const label = new Text(`${newTableNumber}`, {
-        fontSize: 20,
-        fontWeight: "bold",
-        fill: "#ffffff",
-      });
-
-      label.set({
-        left: tableWidth / 2 - (label.width || 0) / 2,
-        top: (tableHeight * 0.7) / 2 - (label.height || 0) / 2,
-      });
-
       const totalTables = currentCount + i;
       const col = totalTables % tablesPerRow;
       const row = Math.floor(totalTables / tablesPerRow);
       
-      const group = new Group([tableTop, tableBase, label], {
-        left: 50 + col * (tableWidth + spacing),
-        top: 50 + row * (tableHeight + spacing),
-        selectable: true,
-        hasControls: true,
-        hasBorders: true,
-        lockScalingX: true,
-        lockScalingY: true,
-        lockRotation: false,
-      });
-
-      fabricCanvas.add(group);
+      createTableWithSeats(
+        newTableNumber,
+        50 + col * (tableWidth + spacing),
+        50 + row * (tableHeight + spacing),
+        4
+      );
     }
     
     setDeskCount(currentCount + amount);
@@ -235,7 +282,7 @@ const LayoutEditor = () => {
 
     toast({
       title: `${amount} table${amount > 1 ? 's' : ''} added! 🪑`,
-      description: `Added ${amount} draggable table${amount > 1 ? 's' : ''} to the layout`,
+      description: `Added ${amount} resizable table${amount > 1 ? 's' : ''} with 4 seats each`,
     });
   };
 
@@ -401,7 +448,7 @@ const LayoutEditor = () => {
           </div>
 
           <p className="text-sm text-muted-foreground mt-4">
-            Drag and drop tables to arrange your classroom layout. Click and drag to move, rotate handles to turn tables.
+            Drag tables to move them, use corner handles to resize, and rotation handle to turn. Yellow squares represent seats. Each table starts with 4 seats.
             Total tables: {deskCount}
           </p>
         </Card>
