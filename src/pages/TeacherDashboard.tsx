@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
-import { Plus, Users, LogOut } from "lucide-react";
+import { Plus, Users, LogOut, Copy } from "lucide-react";
 
 interface Class {
   code: string;
@@ -68,6 +68,14 @@ const TeacherDashboard = () => {
     navigate("/teacher");
   };
 
+  const copyToClipboard = (code: string) => {
+    navigator.clipboard.writeText(code);
+    toast({
+      title: "Copied! 🥔",
+      description: `Class code ${code} copied to clipboard`,
+    });
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-muted to-background p-4">
       <div className="max-w-6xl mx-auto py-8">
@@ -106,11 +114,31 @@ const TeacherDashboard = () => {
           {Object.entries(classes).map(([code, classData]) => (
             <Card
               key={code}
-              className="p-6 hover:shadow-xl transition-shadow cursor-pointer"
-              onClick={() => navigate(`/teacher/class/${code}`)}
+              className="p-6 hover:shadow-xl transition-shadow"
             >
-              <h3 className="text-xl font-semibold mb-2">{classData.name}</h3>
-              <p className="text-muted-foreground mb-4">Code: {code}</p>
+              <div onClick={() => navigate(`/teacher/class/${code}`)} className="cursor-pointer">
+                <h3 className="text-xl font-semibold mb-4">{classData.name}</h3>
+              </div>
+              
+              <div className="bg-gradient-to-r from-primary/10 to-secondary/10 rounded-lg p-4 mb-4">
+                <p className="text-xs text-muted-foreground mb-1">Class Code:</p>
+                <div className="flex items-center justify-between gap-2">
+                  <p className="text-4xl font-bold tracking-wider bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
+                    {code}
+                  </p>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      copyToClipboard(code);
+                    }}
+                  >
+                    <Copy className="h-4 w-4" />
+                  </Button>
+                </div>
+              </div>
+
               <div className="flex items-center text-sm text-muted-foreground">
                 <Users className="mr-2 h-4 w-4" />
                 {classData.students?.length || 0} students

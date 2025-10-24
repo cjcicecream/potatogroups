@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -7,11 +7,16 @@ import { useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
 
 const Teacher = () => {
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const navigate = useNavigate();
   const { toast } = useToast();
+
+  useEffect(() => {
+    if (localStorage.getItem("currentTeacher")) {
+      navigate("/teacher/dashboard");
+    }
+  }, [navigate]);
 
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
@@ -20,11 +25,11 @@ const Teacher = () => {
     
     if (teachers[email] && teachers[email].password === password) {
       localStorage.setItem("currentTeacher", email);
-      setIsLoggedIn(true);
       toast({
         title: "Welcome back! 🥔",
         description: "Successfully logged in",
       });
+      navigate("/teacher/dashboard");
     } else {
       toast({
         title: "Login failed",
@@ -53,17 +58,12 @@ const Teacher = () => {
     };
     localStorage.setItem("teachers", JSON.stringify(teachers));
     localStorage.setItem("currentTeacher", email);
-    setIsLoggedIn(true);
     toast({
       title: "Account created! 🥔",
       description: "Welcome to Potato Groups!",
     });
-  };
-
-  if (isLoggedIn || localStorage.getItem("currentTeacher")) {
     navigate("/teacher/dashboard");
-    return null;
-  }
+  };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-muted to-background flex items-center justify-center p-4">
