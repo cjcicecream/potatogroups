@@ -5,6 +5,16 @@ import { Card } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
 import { ArrowLeft, Square, Save, Users } from "lucide-react";
 import { Canvas as FabricCanvas, Rect, Text, Group } from "fabric";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 
 interface Class {
   code: string;
@@ -21,6 +31,8 @@ const LayoutEditor = () => {
   const [fabricCanvas, setFabricCanvas] = useState<FabricCanvas | null>(null);
   const [classData, setClassData] = useState<Class | null>(null);
   const [deskCount, setDeskCount] = useState(0);
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [deskAmount, setDeskAmount] = useState("");
 
   useEffect(() => {
     const currentTeacher = localStorage.getItem("currentTeacher");
@@ -121,45 +133,69 @@ const LayoutEditor = () => {
     fabricCanvas.renderAll();
   }, [fabricCanvas, classData?.students?.length]);
 
-  const addDesk = () => {
-    if (!fabricCanvas) return;
+  const addDesks = (amount: number) => {
+    if (!fabricCanvas || amount < 1) return;
 
-    const newDeskNumber = deskCount + 1;
+    const currentCount = deskCount;
     
-    const desk = new Rect({
-      left: 0,
-      top: 0,
-      fill: "#e0e7ff",
-      width: 60,
-      height: 60,
-      stroke: "#6366f1",
-      strokeWidth: 2,
-      rx: 4,
-      ry: 4,
-    });
+    for (let i = 0; i < amount; i++) {
+      const newDeskNumber = currentCount + i + 1;
+      
+      const desk = new Rect({
+        left: 0,
+        top: 0,
+        fill: "#e0e7ff",
+        width: 60,
+        height: 60,
+        stroke: "#6366f1",
+        strokeWidth: 2,
+        rx: 4,
+        ry: 4,
+      });
 
-    const label = new Text(`${newDeskNumber}`, {
-      left: 30,
-      top: 30,
-      fontSize: 16,
-      fontWeight: "bold",
-      fill: "#1e293b",
-      originX: "center",
-      originY: "center",
-    });
+      const label = new Text(`${newDeskNumber}`, {
+        fontSize: 16,
+        fontWeight: "bold",
+        fill: "#1e293b",
+      });
 
-    const group = new Group([desk, label], {
-      left: 100 + (deskCount % 5) * 80,
-      top: 100 + Math.floor(deskCount / 5) * 80,
-    });
+      label.set({
+        left: 30 - (label.width || 0) / 2,
+        top: 30 - (label.height || 0) / 2,
+      });
 
-    fabricCanvas.add(group);
-    setDeskCount(newDeskNumber);
+      const totalDesks = currentCount + i;
+      const group = new Group([desk, label], {
+        left: 100 + (totalDesks % 5) * 80,
+        top: 100 + Math.floor(totalDesks / 5) * 80,
+      });
+
+      fabricCanvas.add(group);
+    }
+    
+    setDeskCount(currentCount + amount);
+    fabricCanvas.renderAll();
 
     toast({
-      title: "Desk added! 🥔",
-      description: `Desk ${newDeskNumber} has been added to the layout`,
+      title: `${amount} desk${amount > 1 ? 's' : ''} added! 🥔`,
+      description: `Added ${amount} desk${amount > 1 ? 's' : ''} to the layout`,
     });
+  };
+
+  const handleAddDesks = () => {
+    const amount = parseInt(deskAmount);
+    if (isNaN(amount) || amount < 1) {
+      toast({
+        title: "Invalid amount",
+        description: "Please enter a valid number of desks",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    addDesks(amount);
+    setIsDialogOpen(false);
+    setDeskAmount("");
   };
 
   const generateAllDesks = () => {
@@ -290,9 +326,9 @@ const LayoutEditor = () => {
               <Users className="mr-2 h-4 w-4" />
               Generate Desks for All Students
             </Button>
-            <Button onClick={addDesk} variant="outline">
+            <Button onClick={() => setIsDialogOpen(true)} variant="outline">
               <Square className="mr-2 h-4 w-4" />
-              Add Single Desk
+              Add Desks
             </Button>
             <Button onClick={handleClear} variant="outline">
               Clear All
@@ -313,6 +349,41 @@ const LayoutEditor = () => {
           </p>
         </Card>
       </div>
+
+      <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Add Desks</DialogTitle>
+            <DialogDescription>
+              How many desks would you like to add to the layout?
+            </DialogDescription>
+          </DialogHeader>
+          <div className="grid gap-4 py-4">
+            <div className="grid gap-2">
+              <Label htmlFor="deskAmount">Number of desks</Label>
+              <Input
+                id="deskAmount"
+                type="number"
+                min="1"
+                placeholder="Enter number of desks"
+                value={deskAmount}
+                onChange={(e) => setDeskAmount(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") {
+                    handleAddDesks();
+                  }
+                }}
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsDialogOpen(false)}>
+              Cancel
+            </Button>
+            <Button onClick={handleAddDesks}>Add Desks</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
