@@ -32,7 +32,7 @@ const LayoutEditor = () => {
   const [classData, setClassData] = useState<Class | null>(null);
   const [deskCount, setDeskCount] = useState(0);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const [deskAmount, setDeskAmount] = useState("");
+  const [seatCount, setSeatCount] = useState("");
 
   useEffect(() => {
     const currentTeacher = localStorage.getItem("currentTeacher");
@@ -286,20 +286,44 @@ const LayoutEditor = () => {
     });
   };
 
-  const handleAddDesks = () => {
-    const amount = parseInt(deskAmount);
-    if (isNaN(amount) || amount < 1) {
+  const handleAddTable = () => {
+    const seats = parseInt(seatCount);
+    if (isNaN(seats) || seats < 1) {
       toast({
-        title: "Invalid amount",
-        description: "Please enter a valid number of desks",
+        title: "Invalid number",
+        description: "Please enter a valid number of seats (minimum 1)",
         variant: "destructive",
       });
       return;
     }
     
-    addDesks(amount);
+    // Add one table with specified seats
+    const newTableNumber = deskCount + 1;
+    const spacing = 50;
+    const tableWidth = 80;
+    const tableHeight = 120;
+    const tablesPerRow = 6;
+    
+    const col = deskCount % tablesPerRow;
+    const row = Math.floor(deskCount / tablesPerRow);
+    
+    createTableWithSeats(
+      newTableNumber,
+      50 + col * (tableWidth + spacing),
+      50 + row * (tableHeight + spacing),
+      seats
+    );
+    
+    setDeskCount(newTableNumber);
+    fabricCanvas?.renderAll();
+    
     setIsDialogOpen(false);
-    setDeskAmount("");
+    setSeatCount("");
+    
+    toast({
+      title: "Table added! 🪑",
+      description: `Added table #${newTableNumber} with ${seats} seat${seats > 1 ? 's' : ''}`,
+    });
   };
 
   const generateAllDesks = () => {
@@ -432,7 +456,7 @@ const LayoutEditor = () => {
             </Button>
             <Button onClick={() => setIsDialogOpen(true)} variant="outline">
               <Square className="mr-2 h-4 w-4" />
-              Add Tables
+              Add One Table
             </Button>
             <Button onClick={handleClear} variant="outline">
               Clear All
@@ -457,24 +481,24 @@ const LayoutEditor = () => {
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Add Tables</DialogTitle>
+            <DialogTitle>Add One Table</DialogTitle>
             <DialogDescription>
-              How many tables would you like to add to the layout? You can add as many as you need.
+              How many seats should this table have? (How many students can sit at this table?)
             </DialogDescription>
           </DialogHeader>
           <div className="grid gap-4 py-4">
             <div className="grid gap-2">
-              <Label htmlFor="deskAmount">Number of tables</Label>
+              <Label htmlFor="seatCount">Number of seats</Label>
               <Input
-                id="deskAmount"
+                id="seatCount"
                 type="number"
                 min="1"
-                placeholder="Enter number of tables (unlimited)"
-                value={deskAmount}
-                onChange={(e) => setDeskAmount(e.target.value)}
+                placeholder="Enter number of seats (e.g., 4, 6, 8)"
+                value={seatCount}
+                onChange={(e) => setSeatCount(e.target.value)}
                 onKeyDown={(e) => {
                   if (e.key === "Enter") {
-                    handleAddDesks();
+                    handleAddTable();
                   }
                 }}
               />
@@ -484,7 +508,7 @@ const LayoutEditor = () => {
             <Button variant="outline" onClick={() => setIsDialogOpen(false)}>
               Cancel
             </Button>
-            <Button onClick={handleAddDesks}>Add Tables</Button>
+            <Button onClick={handleAddTable}>Add Table</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
