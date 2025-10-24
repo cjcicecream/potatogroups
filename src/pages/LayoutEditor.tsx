@@ -70,8 +70,8 @@ const LayoutEditor = () => {
     if (!canvasRef.current) return;
 
     const canvas = new FabricCanvas(canvasRef.current, {
-      width: 800,
-      height: 600,
+      width: 1400,
+      height: 900,
       backgroundColor: "#f8f9fa",
     });
 
