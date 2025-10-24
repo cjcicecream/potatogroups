@@ -9,6 +9,7 @@ import Student from "./pages/Student";
 import Chart from "./pages/Chart";
 import TeacherDashboard from "./pages/TeacherDashboard";
 import ClassView from "./pages/ClassView";
+import LayoutEditor from "./pages/LayoutEditor";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -24,6 +25,7 @@ const App = () => (
           <Route path="/teacher" element={<Teacher />} />
           <Route path="/teacher/dashboard" element={<TeacherDashboard />} />
           <Route path="/teacher/class/:code" element={<ClassView />} />
+          <Route path="/teacher/class/:code/layout" element={<LayoutEditor />} />
           <Route path="/student" element={<Student />} />
           <Route path="/chart" element={<Chart />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}

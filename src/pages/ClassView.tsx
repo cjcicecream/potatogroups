@@ -190,7 +190,12 @@ const ClassView = () => {
           <Button size="lg" className="flex-1">
             Create Seating Chart
           </Button>
-          <Button size="lg" variant="outline" className="flex-1">
+          <Button 
+            size="lg" 
+            variant="outline" 
+            className="flex-1"
+            onClick={() => navigate(`/teacher/class/${code}/layout`)}
+          >
             Manage Layout
           </Button>
         </div>
