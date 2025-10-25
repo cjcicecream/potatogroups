@@ -27,7 +27,9 @@ const TeacherDashboard = () => {
       return;
     }
 
-    const storedClasses = JSON.parse(localStorage.getItem("classes") || "{}");
+    // Load classes specific to this teacher
+    const teacherClassesKey = `teacher_${currentTeacher}_classes`;
+    const storedClasses = JSON.parse(localStorage.getItem(teacherClassesKey) || "{}");
     setClasses(storedClasses);
   }, [navigate]);
 
@@ -43,6 +45,9 @@ const TeacherDashboard = () => {
   const handleCreateClass = (e: React.FormEvent) => {
     e.preventDefault();
     
+    const currentTeacher = localStorage.getItem("currentTeacher");
+    if (!currentTeacher) return;
+    
     const code = generateClassCode();
     const newClass: Class = {
       code,
@@ -53,7 +58,10 @@ const TeacherDashboard = () => {
 
     const updatedClasses = { ...classes, [code]: newClass };
     setClasses(updatedClasses);
-    localStorage.setItem("classes", JSON.stringify(updatedClasses));
+    
+    // Save classes specific to this teacher
+    const teacherClassesKey = `teacher_${currentTeacher}_classes`;
+    localStorage.setItem(teacherClassesKey, JSON.stringify(updatedClasses));
 
     toast({
       title: "Class created! 🥔",
